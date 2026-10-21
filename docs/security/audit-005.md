@@ -18,7 +18,7 @@
 | S7 | medium | .env.example fragmentation | repo root | no top-level `.env.example`; per-app files don't cover the superset `ecosystem.config.cjs` reads |
 | S8 | medium | Dockerfile hardening | `apps/{listener,web}/Dockerfile` | `--ignore-scripts` already in use (positive); comment names operational not security rationale |
 | S9 | medium | committed JWTs | `scripts/e2e-payment-testnet.mjs:20` · `scripts/e2e-subscriptions.mjs:17` | anon-key for Supabase ref `nhddnulzsaubewvzspkh` shipped in repo; project differs from `aaiiwhmthjtkcartzmku` — two-project confusion |
-| S10 | low | gitignore | `.env.local.ci`, `.env.docker.example` | intentionally not ignored (CI / template); contents are demo JWTs |
+| S10 | low | gitignore | `.env.docker.example` | intentionally not ignored (template); CI variables now live only in the workflow env block |
 | S11 | low | plugin compat | `woocommerce-slippay.php:13` | `WC tested up to: 9.0` will go stale |
 
 ## positive findings (keep, document)
