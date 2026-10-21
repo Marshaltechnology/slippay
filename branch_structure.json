@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "docs/350-webhook-checkout-contract",
+    "hv/fix-73",
+    "main",
+    "origin",
+    "sec/182-ci-env-single-source",
+    "wave/reland-116",
+    "wave/reland-117",
+    "wave/reland-118"
+  ],
+  "parent": {
+    "docs/350-webhook-checkout-contract": "main",
+    "hv/fix-73": "main",
+    "main": null,
+    "origin": "main",
+    "sec/182-ci-env-single-source": "main",
+    "wave/reland-116": "main",
+    "wave/reland-117": "main",
+    "wave/reland-118": "main"
+  },
+  "order": [
+    "main",
+    "docs/350-webhook-checkout-contract",
+    "hv/fix-73",
+    "origin",
+    "sec/182-ci-env-single-source",
+    "wave/reland-116",
+    "wave/reland-117",
+    "wave/reland-118"
+  ]
+}
