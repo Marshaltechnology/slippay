@@ -14,6 +14,11 @@ export function nextBackoff(attempt: number): number | null {
   return SCHEDULE[attempt] ?? null;
 }
 
+/** A 4xx response is a permanent receiver error: do not retry it. */
+export function isPermanentClientError(code: number | undefined): boolean {
+  return typeof code === "number" && code >= 400 && code < 500;
+}
+
 export interface DeliverArgs {
   url: string;
   secret: string;
@@ -161,7 +166,9 @@ export function startWebhookWorker(db: SupabaseClient, allowLocal: boolean) {
           }).eq("id", row.id);
           log("info", "webhook_sent", { id: row.id, code: result.code });
         } else {
-          const backoff = nextBackoff(newAttempt - 1);
+          const backoff = isPermanentClientError(result.code)
+            ? null
+            : nextBackoff(newAttempt - 1);
           await db.from("webhook_deliveries").update({
             status: backoff === null ? "dead" : "failed",
             response_code: result.code,

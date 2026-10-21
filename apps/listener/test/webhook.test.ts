@@ -9,7 +9,7 @@ vi.mock("node:dns/promises", () => ({
   lookup: vi.fn(),
 }));
 
-import { nextBackoff, deliverOnce } from "../src/webhook.js";
+import { nextBackoff, deliverOnce, isPermanentClientError } from "../src/webhook.js";
 import {
   signWebhook,
   verifyWebhook,
@@ -27,7 +27,19 @@ describe("nextBackoff", () => {
     expect(nextBackoff(3)).toBe(7200);
     expect(nextBackoff(4)).toBe(43200);
     expect(nextBackoff(5)).toBe(86400);
-    expect(nextBackoff(6)).toBm(null);
+    expect(nextBackoff(6)).toBeNull();
+  });
+});
+
+describe("isPermanentClientError", () => {
+  it("treats 4xx as permanent and other statuses as retryable", () => {
+    expect(isPermanentClientError(400)).toBe(true);
+    expect(isPermanentClientError(404)).toBe(true);
+    expect(isPermanentClientError(499)).toBe(true);
+    expect(isPermanentClientError(200)).toBe(false);
+    expect(isPermanentClientError(302)).toBe(false);
+    expect(isPermanentClientError(500)).toBe(false);
+    expect(isPermanentClientError(undefined)).toBe(false);
   });
 });
 
