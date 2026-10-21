@@ -123,11 +123,50 @@ Sorted by `created_at` desc.
 
 ## Get one order (public)
 
-`GET /api/v1/orders/:id`
+`GET /api/v1/orders/:id?t=<checkout-token>`
 
-No auth required — used by the hosted checkout to render the page. Returns
-a slimmed-down view including `merchant_stellar_address` so the wallet flow
-can construct the payment.
+No API key is required because the customer's browser calls this while
+rendering the hosted checkout. Instead, the token in `checkout_url` is the
+credential.
+
+### Checkout token
+
+When an order is created (or a subscription order is renewed), SlipPay returns
+a `checkout_url` like:
+
+```json
+{ "checkout_url": "https://api.slippay.cc/checkout/<order-id>?t=<token>" }
+```
+
+The token is:
+
+```
+t = base64url(HMAC-SHA256(CHECKOUT_TOKEN_SECRET, order_id))
+```
+
+- It is scoped to exactly one order id; it cannot read any other order.
+- The token itself has no clock; the order's `expires_at` (default 30 minutes)
+  is the payment window. An expired order can still be read to render its
+  final state, but it cannot be paid.
+- A missing, malformed, or mismatched token returns `401 unauthorized`.
+- The public response is intentionally slimmed down: it omits merchant-only
+  fields such as `merchant_id`, `external_ref`, and `tx_hash`, but includes
+  the pinned `merchant_stellar_address` so the wallet can construct payment.
+
+Reference verification (Node):
+
+```ts
+import crypto from "node:crypto";
+
+export function verifyCheckoutToken(orderId: string, token: string, secret: string): boolean {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(orderId)
+    .digest("base64url");
+  if (expected.length !== token.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(token));
+}
+```
 
 ### Response
 
@@ -135,12 +174,14 @@ can construct the payment.
 {
   "order": {
     "id": "...",
-    "merchant_id": "...",
     "brl_amount": "99.90",
+    "usd_amount": "18.16",
     "usdc_amount": "18.16",
     "memo": "ce230c...",
     "status": "pending",
     "expires_at": "...",
+    "paid_at": null,
+    "created_at": "...",
     "merchant_stellar_address": "GA5ZSE..."
   }
 }
